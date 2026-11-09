@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#145c4b"><meta name="description" content="تسجيل زيارات العملاء ومصروفاتهم اليومية">
+<link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon-192.png">
+<title>مصروفاتي | سجل الزيارات</title>
+<style>
+:root{--green:#145c4b;--green2:#e8f3ef;--bg:#f3f6f5;--ink:#17352e;--muted:#72817c;--line:#e1e9e5;--red:#b64242}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Tahoma,Arial,sans-serif}
+header{background:linear-gradient(125deg,#103e34,#19745d);color:#fff;padding:22px 16px 28px}
+.wrap{max-width:900px;margin:auto;padding:0 14px}h1{font-size:22px;margin:0 0 6px}.sub{font-size:12px;color:#d2e7df}
+main{max-width:900px;margin:-12px auto 40px;padding:0 14px}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:13px}
+.stat,.panel{background:#fff;border:1px solid var(--line);border-radius:15px;box-shadow:0 6px 22px #183c3010}
+.stat{padding:13px}.stat small{color:var(--muted);font-size:11px}.stat strong{display:block;font-size:20px;margin-top:7px}
+.panel{padding:16px;margin-bottom:13px}.panel h2{font-size:16px;margin:0 0 13px}
+label{display:block;font-size:12px;font-weight:bold;margin:0 0 6px}
+input,select,textarea{width:100%;padding:11px;border:1px solid #d9e3de;border-radius:9px;font:inherit;font-size:14px;background:white;color:var(--ink);outline:none}
+textarea{min-height:58px;resize:vertical}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.field{margin-bottom:11px}.full{grid-column:1/-1}
+button{border:0;border-radius:9px;padding:11px 14px;font:inherit;font-size:13px;font-weight:bold;cursor:pointer}
+.primary{background:var(--green);color:#fff}.soft{background:var(--green2);color:var(--green)}.danger{background:#fff0f0;color:var(--red)}.muted{background:#eef1ef;color:#455650}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.row>*{flex:1}
+.item{display:grid;grid-template-columns:1fr 115px 36px;gap:7px;margin:8px 0;align-items:center}
+.item button{padding:9px}.hint{font-size:11px;color:var(--muted);line-height:1.7}
+.totalbox{background:var(--green2);border-radius:10px;padding:12px;display:flex;justify-content:space-between;font-weight:bold;margin:12px 0}
+.tabs{display:flex;gap:7px;margin-bottom:13px}.tabs button{flex:1;background:#e9efec;color:#49615a}.tabs button.active{background:var(--green);color:white}
+.visit{border:1px solid var(--line);border-radius:11px;padding:12px;margin:9px 0}.visithead{display:flex;justify-content:space-between;gap:8px;align-items:start}.visit strong{font-size:14px}.visit small{color:var(--muted)}.visitmeta{font-size:12px;color:#566760;margin-top:8px;line-height:1.8}
+.pill{font-size:11px;background:var(--green2);color:var(--green);padding:5px 8px;border-radius:20px;white-space:nowrap}
+.empty{text-align:center;padding:22px;color:var(--muted);font-size:13px}
+.line{height:1px;background:var(--line);margin:12px 0}.reportrow{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);font-size:13px}
+.hide{display:none!important}
+@media(max-width:560px){.stats{grid-template-columns:1fr 1fr}.stats .stat:last-child{grid-column:1/-1}.grid{grid-template-columns:1fr}.full{grid-column:auto}.item{grid-template-columns:1fr 95px 34px}.stat strong{font-size:18px}}
+</style></head>
+<body>
+<header><div class="wrap"><h1>مصروفاتي</h1><div class="sub">سجل زيارات العملاء ومتابعة المصروفات</div></div></header>
+<main>
+<div class="stats">
+ <div class="stat"><small>مصروفات الشهر</small><strong id="topMonth">0.00 ج.م</strong></div>
+ <div class="stat"><small>عدد الزيارات</small><strong id="topVisits">0</strong></div>
+ <div class="stat"><small>إجمالي المصروفات</small><strong id="topAll">0.00 ج.م</strong></div>
+</div>
+<div class="tabs"><button class="active" data-tab="add">＋ زيارة جديدة</button><button data-tab="list">السجلات</button><button data-tab="report">التقارير</button></div>
+<section id="tab-add" class="panel">
+<h2 id="formTitle">تسجيل زيارة عميل</h2>
+<form id="visitForm">
+<div class="grid">
+ <div class="field"><label>اسم العميل *</label><input id="customer" list="customerOptions" placeholder="اختر أو اكتب اسم العميل" required><datalist id="customerOptions"></datalist></div>
+ <div class="field"><label>تاريخ الزيارة</label><input id="date" type="date" required></div>
+</div>
+<div class="line"></div>
+<label>مصروفات الزيارة</label><div id="expenseRows"></div>
+<button type="button" class="soft" id="addExpense">＋ إضافة بند مصروف</button>
+<div class="totalbox"><span>إجمالي الزيارة</span><span id="visitTotal">0.00 ج.م</span></div>
+<div class="field"><label>ملاحظات الزيارة (اختياري)</label><textarea id="notes" placeholder="تفاصيل أو سبب الزيارة..."></textarea></div>
+<div class="row"><button class="primary" type="submit" id="saveVisit">حفظ الزيارة</button><button class="muted hide" type="button" id="cancelEdit">إلغاء التعديل</button></div>
+</form><p class="hint">يمكنك إضافة أكثر من بند في الزيارة الواحدة، مثل المواصلات والبنزين والطعام والإقامة.</p>
+</section>
+<section id="tab-list" class="panel hide"><h2>سجل الزيارات</h2>
+<div class="grid"><div class="field"><label>تصفية بالشهر</label><input type="month" id="listMonth"></div><div class="field"><label>بحث باسم العميل</label><input id="listSearch" placeholder="اسم العميل"></div></div>
+<div id="visitList"></div></section>
+<section id="tab-report" class="panel hide"><h2>التقرير الشهري</h2>
+<div class="field"><label>الشهر المطلوب</label><input type="month" id="reportMonth"></div>
+<div class="totalbox"><span>إجمالي الشهر</span><span id="reportTotal">0.00 ج.م</span></div>
+<div class="grid"><div><div class="reportrow"><span>عدد الزيارات</span><b id="reportCount">0</b></div></div><div><div class="reportrow"><span>عدد العملاء</span><b id="reportCustomers">0</b></div></div></div>
+<div class="line"></div><h2>إجمالي كل عميل</h2><div id="byCustomer"></div>
+<div class="line"></div><h2>تفصيل المصروفات حسب النوع</h2><div id="byType"></div>
+<div class="row" style="margin-top:14px"><button class="primary" id="exportCsv">تصدير Excel (CSV)</button><button class="soft" id="backup">نسخة احتياطية</button></div>
+<div class="field" style="margin-top:10px"><label class="soft" style="display:inline-block;padding:10px 12px;border-radius:9px">استعادة نسخة احتياطية<input id="restore" type="file" accept="application/json" class="hide"></label></div>
+<p class="hint">التقارير والتصدير حسب الشهر المحدد. ملف CSV يفتح في Excel.</p>
+</section>
+<p class="hint" style="text-align:center">تُحفظ بياناتك على هذا الجهاز فقط. صدّر نسخة احتياطية بانتظام.</p>
+</main>
+<script>
+const $=id=>document.getElementById(id),KEY='masroofaty_visits_v2';
+let visits=[],editId=null;
+try{visits=JSON.parse(localStorage.getItem(KEY)||'[]');if(!Array.isArray(visits))visits=[]}catch(e){visits=[]}
+const iso=()=>{let d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+const month=()=>iso().slice(0,7),fmt=n=>Number(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})+' ج.م';
+const safe=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const types=['مواصلات','بنزين','طعام','إقامة','صيانة','أخرى'];
+const persist=()=>localStorage.setItem(KEY,JSON.stringify(visits));
+$('date').value=iso();$('listMonth').value=month();$('reportMonth').value=month();
+function addRow(type='مواصلات',amount=''){let d=document.createElement('div');d.className='item';d.innerHTML=`<select aria-label="نوع المصروف">${types.map(t=>`<option ${t===type?'selected':''}>${t}</option>`).join('')}</select><input type="number" min="0" step="0.01" placeholder="المبلغ" value="${safe(amount)}" aria-label="المبلغ"><button type="button" class="danger" aria-label="حذف البند">×</button>`;d.querySelector('input').addEventListener('input',calcTotal);d.querySelector('button').onclick=()=>{d.remove();if(!$('expenseRows').children.length)addRow();calcTotal()};$('expenseRows').append(d);calcTotal()}
+function calcTotal(){let n=[...$('expenseRows').children].reduce((s,r)=>s+Math.max(0,Number(r.querySelector('input').value)||0),0);$('visitTotal').textContent=fmt(n)}
+$('addExpense').onclick=()=>addRow();addRow();
+function reset(){editId=null;$('visitForm').reset();$('date').value=iso();$('expenseRows').innerHTML='';addRow();$('formTitle').textContent='تسجيل زيارة عميل';$('saveVisit').textContent='حفظ الزيارة';$('cancelEdit').classList.add('hide')}
+$('visitForm').onsubmit=e=>{e.preventDefault();let customer=$('customer').value.trim(),expenses=[...$('expenseRows').children].map(r=>({type:r.querySelector('select').value,amount:Number(r.querySelector('input').value)||0})).filter(x=>x.amount>0);if(!customer||!expenses.length){alert('اكتب اسم العميل وأضف مبلغًا واحدًا على الأقل.');return}
+let obj={id:editId||('v'+Date.now()+Math.random().toString(16).slice(2)),customer,date:$('date').value,expenses,notes:$('notes').value.trim(),created:Date.now()};
+if(editId)visits=visits.map(v=>v.id===editId?obj:v);else visits.push(obj);persist();reset();render();alert('تم حفظ الزيارة بنجاح')};
+$('cancelEdit').onclick=reset;
+document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x===b));['add','list','report'].forEach(t=>$('tab-'+t).classList.toggle('hide',t!==b.dataset.tab));render()});
+function sum(v){return v.expenses.reduce((s,e)=>s+e.amount,0)}
+function render(){
+let m=month(),mt=visits.filter(v=>v.date.startsWith(m));$('topMonth').textContent=fmt(mt.reduce((s,v)=>s+sum(v),0));$('topVisits').textContent=mt.length;$('topAll').textContent=fmt(visits.reduce((s,v)=>s+sum(v),0));
+let names=[...new Set(visits.map(v=>v.customer))].sort();$('customerOptions').innerHTML=names.map(n=>`<option value="${safe(n)}">`).join('');
+let lm=$('listMonth').value,q=$('listSearch').value.trim().toLowerCase(),filtered=visits.filter(v=>(!lm||v.date.startsWith(lm))&&(!q||v.customer.toLowerCase().includes(q))).sort((a,b)=>b.date.localeCompare(a.date)||b.created-a.created);
+$('visitList').innerHTML=filtered.length?filtered.map(v=>`<div class="visit"><div class="visithead"><div><strong>${safe(v.customer)}</strong><br><small>${safe(v.date)}</small></div><span class="pill">${fmt(sum(v))}</span></div><div class="visitmeta">${v.expenses.map(e=>safe(e.type)+': '+fmt(e.amount)).join(' • ')}${v.notes?'<br>ملاحظات: '+safe(v.notes):''}</div><div class="row" style="margin-top:10px"><button class="soft" onclick="editVisit('${v.id}')">تعديل</button><button class="danger" onclick="deleteVisit('${v.id}')">حذف</button></div></div>`).join(''):'<div class="empty">لا توجد زيارات مطابقة.</div>';
+report();
+}
+function report(){let m=$('reportMonth').value,data=visits.filter(v=>!m||v.date.startsWith(m)),total=data.reduce((s,v)=>s+sum(v),0),customers={};data.forEach(v=>customers[v.customer]=(customers[v.customer]||0)+sum(v));$('reportTotal').textContent=fmt(total);$('reportCount').textContent=data.length;$('reportCustomers').textContent=Object.keys(customers).length;
+let cs=Object.entries(customers).sort((a,b)=>b[1]-a[1]);$('byCustomer').innerHTML=cs.length?cs.map(([n,x])=>`<div class="reportrow"><span>${safe(n)}</span><b>${fmt(x)}</b></div>`).join(''):'<div class="empty">لا توجد بيانات للشهر.</div>';
+let ts={};data.forEach(v=>v.expenses.forEach(e=>ts[e.type]=(ts[e.type]||0)+e.amount));let es=Object.entries(ts).sort((a,b)=>b[1]-a[1]);$('byType').innerHTML=es.length?es.map(([n,x])=>`<div class="reportrow"><span>${safe(n)}</span><b>${fmt(x)}</b></div>`).join(''):'<div class="empty">لا توجد مصروفات.</div>'}
+window.editVisit=id=>{let v=visits.find(x=>x.id===id);if(!v)return;editId=id;$('customer').value=v.customer;$('date').value=v.date;$('notes').value=v.notes||'';$('expenseRows').innerHTML='';v.expenses.forEach(e=>addRow(e.type,e.amount));$('formTitle').textContent='تعديل الزيارة';$('saveVisit').textContent='حفظ التعديلات';$('cancelEdit').classList.remove('hide');document.querySelector('[data-tab="add"]').click();scrollTo(0,0)};
+window.deleteVisit=id=>{if(confirm('هل تريد حذف الزيارة وكل مصروفاتها؟')){visits=visits.filter(v=>v.id!==id);persist();render()}};
+$('listMonth').oninput=render;$('listSearch').oninput=render;$('reportMonth').oninput=render;
+function csv(v){return '"'+String(v??'').replace(/"/g,'""')+'"'}
+$('exportCsv').onclick=()=>{let m=$('reportMonth').value,data=visits.filter(v=>!m||v.date.startsWith(m)),rows=[['التاريخ','اسم العميل','نوع المصروف','المبلغ بالجنيه','ملاحظات']];data.forEach(v=>v.expenses.forEach(e=>rows.push([v.date,v.customer,e.type,e.amount,v.notes])));let blob=new Blob(['\uFEFF'+rows.map(r=>r.map(csv).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8'});download(blob,`تقرير-المصروفات-${m||'الكل'}.csv`)};
+$('backup').onclick=()=>download(new Blob([JSON.stringify(visits,null,2)],{type:'application/json'}),'نسخة-احتياطية-مصروفاتي.json');
+function download(blob,name){let u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),1000)}
+$('restore').onchange=async e=>{let f=e.target.files[0];if(!f)return;try{let x=JSON.parse(await f.text());if(!Array.isArray(x)||!x.every(v=>v.customer&&v.date&&Array.isArray(v.expenses)))throw 0;if(confirm('استبدال البيانات الحالية بالنسخة الاحتياطية؟')){visits=x;persist();render();alert('تمت استعادة البيانات')}}catch(_){alert('ملف النسخة الاحتياطية غير صالح')}e.target.value=''};
+if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+render();
+</script></body></html>
